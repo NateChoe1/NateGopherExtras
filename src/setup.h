@@ -1,6 +1,6 @@
 /*
 
-SimpleGopher, a backend for gopher.
+This file is part of SimpleGopher, a backend for gopher.
 Copyright (C) 2021  Nathaniel Choe
 
 This program is free software: you can redistribute it and/or modify
@@ -18,12 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-#define _GNU_SOURCE
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <stdio.h>
 
 struct Line **pageBegins;

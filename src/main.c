@@ -24,6 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include "hashmap.h"
 #include "setup.h"
 
 #define RECV_BUFFER_SIZE 100
@@ -47,19 +48,57 @@ int openSocket(unsigned short port, int queueSize, struct sockaddr_in *addr) {
 	return fd;
 }
 
-int main() {
-	fprintf(stderr, "EasyGopher  Copyright (C) 2021  Nathaniel Choe");
-	fprintf(stderr, "This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.");
-	fprintf(stderr, "This is free software, and you are welcome to redistribute it");
-	fprintf(stderr, "under certain conditions; type `show c' for details.");
+int main(int argc, char **argv) {
+	fprintf(stderr, "EasyGopher  Copyright (C) 2021  Nathaniel Choe\n");
+	fprintf(stderr, "This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n");
+	fprintf(stderr, "This is free software, and you are welcome to redistribute it\n");
+	fprintf(stderr, "under certain conditions; type `show c' for details.\n");
+
+	char *pageName = "pages.txt";
+	int port = 70;
+	int bufferSize = 5;
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--port") == 0 || strcmp(argv[i], "-p") == 0) {
+			i++;
+			port = atoi(argv[i]);
+			continue;
+		}
+		if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--bufferSize") == 0) {
+			i++;
+			bufferSize = atoi(argv[i]);
+			continue;
+		}
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+			printf("Usage: ./EasyGopher [options] [page file]\n");
+			printf("The page file refers to the file containing the information about what the pages show.\n");
+			printf("The format of the page file goes like this:\n\n");
+
+			printf("[Page name]\n");
+			printf("[Page content line 1]\n");
+			printf("[Page content line 2]\n");
+			printf(".\n");
+			printf("[Page 2 name]\n");
+			printf("[Page 2 content line 1]\n");
+			printf("[Page 2 content line 2]\n");
+			printf(".\n\n");
+
+			printf("Options include:\n");
+			printf("--help        -h      Display this help message\n");
+			printf("--port        -p      Select the gopher port to use\n");
+			printf("--bufferSize  -b      Change the buffer size of the socket\n");
+			return 0;
+		}
+		pageName = argv[i];
+	}
+
+	getPagesFromFile(pageName);
 
 	struct sockaddr_in *addr = malloc(sizeof(struct sockaddr_in));
-	int fd = openSocket(70, 5, addr);
+	int fd = openSocket(port, bufferSize, addr);
 	if (fd < 0) {
-		fprintf(stderr, "An error occured while initializing the original file descriptor. Error code: %d\n", fd);
+		fprintf(stderr, "An error occured while initializing the original file descriptor. Error code: %d\n", errno);
 		return 1;
 	}
-	getPagesFromFile("pages.txt");
 	for (;;) {
 		int addr_size = sizeof(*addr);
 		int newfd = accept(fd, (struct sockaddr *) addr, (socklen_t *) &addr_size);
