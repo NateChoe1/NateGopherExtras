@@ -1,9 +1,16 @@
 
-This is an example on how to use this program. Every page starts with the page name and
-ends with a lone dot on a single line.
-0Link 1	/link1	example.com	70
-This raw data gets sent, so you can have things like this to add links.
+    Welcome to Nate's Gopher site!
+    Here are some links you can press.
+1Toys	/toys	nates-debian-vm	70
+1Other stuff by me	/other	nates-debian-vm	70
 .
-/link1
-This is the second link, if you click the first link it takes you here.
+/toys
+    Here are some toys I've made with server-side rendering:
+1Vote: Tabs or spaces?	/vote	nates-debian-vm	70
+.
+/other
+    I'm a gopher backend, not a gopher frontend, so I don't
+    know how to link http(s) sites on gopher. Anyways, all
+    of my stuff can be found at my github:
+    https://www.github.com/NateChoe1
 .

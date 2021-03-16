@@ -1,2 +1,4 @@
+FILES=src/main.c src/specials.c
+OUT=build/gopher
 all:
-	$(CC) src/main.c -o build/gopher
+	$(CC) $(FILES) -o $(OUT)

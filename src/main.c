@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
+//This is a modified version of EasyGopher.
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdlib.h>
@@ -28,6 +30,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "setup.h"
 
 #define RECV_BUFFER_SIZE 100
+
+void setupSpecials();
+int handleSpecials(int fd, char *page);
 
 int openSocket(unsigned short port, int queueSize, struct sockaddr_in *addr) {
 	int fd = socket(PF_INET, SOCK_STREAM, 0);
@@ -92,6 +97,7 @@ int main(int argc, char **argv) {
 	}
 
 	getPagesFromFile(pageName);
+	setupSpecials();
 
 	struct sockaddr_in *addr = malloc(sizeof(struct sockaddr_in));
 	int fd = openSocket(port, bufferSize, addr);
@@ -111,12 +117,15 @@ int main(int argc, char **argv) {
 		recvBuffer[receivedData - 2] = '\0';
 		//-2 for \r\n
 
-		struct Line *iter = getValue(pages, recvBuffer, strlen(recvBuffer));
-		//the next is because the first line is the directory.
-		while (iter != NULL) {
-			send(newfd, iter->lineContent, iter->length, 0);
-			send(newfd, "\r\n", 2, 0);
+		if (handleSpecials(newfd, recvBuffer) == -1) {
+			struct Line *iter = getValue(pages, recvBuffer, strlen(recvBuffer));
+			//the next is because the first line is the directory.
 			iter = iter->next;
+			while (iter != NULL) {
+				send(newfd, iter->lineContent, iter->length, 0);
+				send(newfd, "\r\n", 2, 0);
+				iter = iter->next;
+			}
 		}
 
 		shutdown(newfd, 2);
