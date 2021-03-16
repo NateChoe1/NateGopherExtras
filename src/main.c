@@ -50,9 +50,9 @@ int openSocket(unsigned short port, int queueSize, struct sockaddr_in *addr) {
 
 int main(int argc, char **argv) {
 	fprintf(stderr, "EasyGopher  Copyright (C) 2021  Nathaniel Choe\n");
-	fprintf(stderr, "This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n");
+	fprintf(stderr, "This program comes with ABSOLUTELY NO WARRANTY; for details, see the GPL.\n");
 	fprintf(stderr, "This is free software, and you are welcome to redistribute it\n");
-	fprintf(stderr, "under certain conditions; type `show c' for details.\n");
+	fprintf(stderr, "under certain conditions; see the GPL for more details.\n");
 
 	char *pageName = "pages.txt";
 	int port = 70;
@@ -110,19 +110,15 @@ int main(int argc, char **argv) {
 		int receivedData = recv(newfd, recvBuffer, RECV_BUFFER_SIZE, 0);
 		recvBuffer[receivedData - 2] = '\0';
 		//-2 for \r\n
-		for (int i = 0; i < pageCount; i++) {
-			if (strcmp(pageBegins[i]->lineContent, recvBuffer) == 0) {
-				struct Line *iter = pageBegins[i]->next;
-				//the next is because the first line is the directory.
-				char shouldContinue = 1;
-				while (iter != NULL) {
-					send(newfd, iter->lineContent, iter->length, 0);
-					send(newfd, "\r\n", 2, 0);
-					iter = iter->next;
-				}
-				break;	
-			}
+
+		struct Line *iter = getValue(pages, recvBuffer, strlen(recvBuffer));
+		//the next is because the first line is the directory.
+		while (iter != NULL) {
+			send(newfd, iter->lineContent, iter->length, 0);
+			send(newfd, "\r\n", 2, 0);
+			iter = iter->next;
 		}
+
 		shutdown(newfd, 2);
 	}
 	return 0;

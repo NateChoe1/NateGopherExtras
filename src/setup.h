@@ -22,9 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdio.h>
 
-struct Line **pageBegins;
-int pagesAllocated;
-int pageCount;
+struct HashMap pages;
 
 struct Line {
 	char *lineContent;
@@ -42,12 +40,14 @@ struct Line *getNextLine(FILE *file) {
 	line->done = 0;
 	for (;;) {
 		int c = fgetc(file);
-		switch (c) {
-			case EOF:
+		if (c == '\n') {
+			c = fgetc(file);
+			fseek(file, -1, SEEK_CUR);
+			if (c == EOF)
 				line->done = 1;
-			case '\n':
-				goto endLoop;
-		}//break just goes out of the switch statement, which isn't what I want.
+			line->lineContent[line->length] = '\0';
+			return line;
+		}
 		line->lineContent[line->length] = c;
 		line->length++;
 		if (line->length == line->allocatedLength - 1) {
@@ -59,38 +59,21 @@ struct Line *getNextLine(FILE *file) {
 			line->lineContent = newString;
 		}
 	}
-
-endLoop:
-	line->lineContent[line->length] = '\0';
-	return line;
 }
 
 void getPagesFromFile(char *fileName) {
 	FILE *file = fopen(fileName, "r");
 	struct Line *head = getNextLine(file);
 	struct Line *iter = head;
-
-	pagesAllocated = 10;
-	pageCount = 1;
-	pageBegins = malloc(sizeof(struct Line) * pagesAllocated);
-	pageBegins[0] = head;//the first line will always be a page begin, but will not be preceded by a dot.
+	pages = initializeHashMap();
+	pages = addToHashMap(pages, head->lineContent, head, strlen(head->lineContent), sizeof(head));
 
 	while (!iter->done) {
 		iter->next = getNextLine(file);
 		struct Line *next = iter->next;
-		if (strcmp(iter->lineContent, ".") == 0) {
-			pageBegins[pageCount] = next;
+		if (!iter->done && strcmp(iter->lineContent, ".") == 0) {
+			pages = addToHashMap(pages, next->lineContent, next, strlen(next->lineContent), sizeof(next));
 			iter->next = NULL;
-			pageCount++;
-			if (pageCount == pagesAllocated) {
-				pagesAllocated *= 2;
-				struct Line **newPageBegins;
-				newPageBegins = malloc(sizeof(struct Line *) * pagesAllocated);
-				for (int i = 0; i < pageCount; i++)
-					newPageBegins[i] = pageBegins[i];
-				free(pageBegins);
-				pageBegins = newPageBegins;
-			}
 		}
 		iter = next;
 	}

@@ -35,18 +35,24 @@ struct HashItem {
 };
 
 char compareIds(void *id1, void *id2, int length1, int length2) {
-	if (length1 != length2)
+	if (length1 != length2) {
 		return 0;
-	for (int i = 0; i < length1; i++) {
-		if (*((char *) (id1 + i)) != *((char *) (id2 + i)))
-			return 0;
 	}
+	for (int i = 0; i < length1; i++) {
+		if (*((char *) (id1 + i)) != *((char *) (id2 + i))) {
+			fprintf(stderr, "Ids different at byte %d\n", i);
+			return 0;
+		}
+	}
+
 	return 1;
 }
 
 struct HashMap initializeHashMap() {
-	struct HashMap newHashMap = {0};
-	//all hashItems are NULL pointers and itemCount is 0.
+	struct HashMap newHashMap;
+	newHashMap.itemCount = 0;
+	for (int i = 0; i < ALLOCATED_HASHMAP_LENGTH; i++)
+		newHashMap.hashItems[i] = NULL;
 	return newHashMap;
 }
 
@@ -62,7 +68,7 @@ int hash(void *id, int idLength) {
 	//In this case, unsigned shorts are always less that 16384 so we're fine.
 }
 
-void addToHashMap(struct HashMap hashMap, void *id, void *value, int idLength, int valueLength) {
+struct HashMap addToHashMap(struct HashMap hashMap, void *id, void *value, int idLength, int valueLength) {
 	int hashValue = hash(id, idLength);
 	struct HashItem *hashItem = malloc(sizeof(struct HashItem));
 	hashItem->id = id;
@@ -72,28 +78,34 @@ void addToHashMap(struct HashMap hashMap, void *id, void *value, int idLength, i
 	hashItem->next = hashMap.hashItems[hashValue];
 	hashMap.hashItems[hashValue] = hashItem;
 	//This does not account for the same element being added to a hashset twice.
+	return hashMap;
 }
 
-void removeFromHashMap(struct HashMap hashMap, void *id, int idLength) {
+struct HashMap removeFromHashMap(struct HashMap hashMap, void *id, int idLength) {
 	if (id == NULL)
-		return;
+		return hashMap;
 	int hashValue = hash(id, idLength);
 	struct HashItem *iter = hashMap.hashItems[hashValue];
 	if (compareIds(id, iter->id, idLength, iter->idLength)) {
 		hashMap.hashItems[hashValue] = iter->next;
 		free(iter);
-		return;
+		return hashMap;
 	}
 	while (iter->next != NULL) {
 		if (compareIds(id, iter->next->id, idLength, iter->next->idLength)) {
 			free(iter->next);
 			iter->next = iter->next->next;
-			return;
+			return hashMap;
 		}
 	}
+
+	return hashMap;
 }
 
 void *getValue(struct HashMap hashMap, void *id, int idLength) {
+	if (id == NULL) {
+		return NULL;
+	}
 	int hashValue = hash(id, idLength);
 	struct HashItem *iter = hashMap.hashItems[hashValue];
 	while (iter != NULL) {
