@@ -1,12 +1,13 @@
 
     Welcome to Nate's Gopher site!
     Here are some links you can press.
-1Toys	/toys	nates-debian-vm	70
-1Other stuff by me	/other	nates-debian-vm	70
+1Toys	/toys	koreanalive.com	70
+1Other stuff by me	/other	koreanalive.com	70
 .
 /toys
-    Here are some toys I've made with server-side rendering:
-1Vote: Tabs or spaces?	/vote	nates-debian-vm	70
+    Here are some toys I've made with dynamic pages:
+1Vote: Tabs or spaces?	/vote	koreanalive.com	70
+1Play a maze	/maze	koreanalive.com	70
 .
 /other
     I'm a gopher backend, not a gopher frontend, so I don't

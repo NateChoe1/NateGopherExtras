@@ -114,17 +114,21 @@ int main(int argc, char **argv) {
 		}
 		char *recvBuffer = malloc(RECV_BUFFER_SIZE);
 		int receivedData = recv(newfd, recvBuffer, RECV_BUFFER_SIZE, 0);
-		recvBuffer[receivedData - 2] = '\0';
-		//-2 for \r\n
+		if (receivedData >= 2) {
+			recvBuffer[receivedData - 2] = '\0';
+			//-2 for \r\n
 
-		if (handleSpecials(newfd, recvBuffer) == -1) {
-			struct Line *iter = getValue(pages, recvBuffer, strlen(recvBuffer));
-			//the next is because the first line is the directory.
-			iter = iter->next;
-			while (iter != NULL) {
-				send(newfd, iter->lineContent, iter->length, 0);
-				send(newfd, "\r\n", 2, 0);
-				iter = iter->next;
+			if (handleSpecials(newfd, recvBuffer) == -1) {
+				struct Line *iter = getValue(pages, recvBuffer, strlen(recvBuffer));
+				//the next is because the first line is the directory.
+				if (iter != NULL) {
+					iter = iter->next;
+					while (iter != NULL) {
+						send(newfd, iter->lineContent, iter->length, 0);
+						send(newfd, "\r\n", 2, 0);
+						iter = iter->next;
+					}
+				}
 			}
 		}
 

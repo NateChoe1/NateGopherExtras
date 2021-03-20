@@ -24,41 +24,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <stdio.h>
 
-#define voteMessageTemplate "    Tabs: %d\r\n    Spaces: %d\r\n\r\n"
-
-int tabsVotes;//This is the correct option.
-int spacesVotes;
+void handleVotePage(int fd, char *page);
+void setupVoting();
 
 void setupSpecials() {
-	tabsVotes = 0;
-	spacesVotes = 0;
+	setupVoting();
+}
+
+char stringStartsWith(char *comp, char *begin) {
+	int len = strlen(begin);
+	for (int i = 0; i < len; i++) {
+		if (!comp[i] || begin[i] != comp[i])
+			return 0;
+	}
+	return 1;
 }
 
 int handleSpecials(int fd, char *page) {
-	if (strcmp(page, "/vote") == 0) {
-		int voteMessageLength = snprintf(NULL, 0, voteMessageTemplate, tabsVotes, spacesVotes);
-		char *voteMessage = malloc(voteMessageLength + 1);
-		sprintf(voteMessage, voteMessageTemplate, tabsVotes, spacesVotes);
-		char *header = "    This section is a poll on tabs vs spaces.\r\n    Current polling results:\r\n";
-		char *footer = "    To vote, click on one of these links:\r\n1Vote tabs\t/tabs vote\tnates-debian-vm\t70\r\n1Vote spaces\t/spaces vote\tnates-debian-vm\t70\r\n.\r\n";
-		send(fd, header, strlen(header), 0);
-		send(fd, voteMessage, voteMessageLength, 0);
-		send(fd, footer, strlen(footer), 0);
-
-		//This is awful practice, but I don't really care.
+	if (stringStartsWith(page, "/vote")) {
+		handleVotePage(fd, page);
 		return 0;
 	}
-	char *votedMessage = "    Thank you for voting in this very meaningful poll.\r\n1Go back to the main page\t\tnates-debian-vm\t70\r\n.\r\n";
-	if (strcmp(page, "/tabs vote") == 0) {
-		tabsVotes++;
-		send(fd, votedMessage, strlen(votedMessage), 0);
-		return 0;
-	}
-	if (strcmp(page, "/spaces vote") == 0) {
-		spacesVotes++;
-		send(fd, votedMessage, strlen(votedMessage), 0);
-		return 0;
-	}
-	//If I could use a switch statement I would, but switch statements don't work here.
 	return -1;
 }
